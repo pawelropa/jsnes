@@ -10,9 +10,14 @@ function getUserHome() {
 }
 
 function getRomsPath() {
-    return os.homedir + '/Desktop/roms';
+    return getUserHome() + '/Desktop/roms';
 }
 
-console.log(getRomsPath())
+console.log(getRomsPath());
+let path = getRomsPath();
 
+fs.readdir(path, (err, files) => {
+    console.log(files);
+    document.body.innerHTML = "<p>"+files+"</p>"
+});
 
