@@ -21,6 +21,8 @@ function Cartridge () {
 function loadNesFile(path) {
     fs.readFile(path, (err, data) => {
 
+        console.log(data.length);
+        
         // Check agains header
         var iNesHeader = data.slice(0, 4);
         if (iNesHeader.equals(Buffer.from('4E45531A', 'hex')) === true) {
@@ -30,7 +32,38 @@ function loadNesFile(path) {
             return;
         }
 
-        
+        var progROM = data.readInt8(4);
+        var chrROM = data.readInt8(5);
+
+        console.log(progROM);
+        console.log(chrROM);
+
+        var mirroring = ((data.readInt8(6) & 1) !== 0 ? 1 : 0);
+        var batteryRam = (data.readInt8(6) & 2) !== 0;
+        var trainer = (data.readInt8(6) & 4) !== 0;
+        var mapperType = (data.readInt8(6) >> 4) | (data.readInt8(6) & 0xF0);
+
+        var padding = 16;
+        if (trainer) {
+            padding += 512;
+        }
+
+        var prgSize = progROM * 16384;
+        var chrSize = chrROM * 8192;
+
+        var prg = data.slice(padding, prgSize);
+        var chr = data.slice(10000, chrSize);
+
+        console.log(chr);
+        console.log(padding, prgSize, chrSize);
+        console.log(chr.length);
+        console.log(prg.length);
+        console.log(data.length);
+        // console.log(data.toString('hex'));
+        // console.log('--------');
+        // console.log(prg.toString('hex'));
+        // console.log('--------');
+        // console.log(chr.toString('hex'));
     });  
 }
 
