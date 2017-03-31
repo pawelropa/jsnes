@@ -14,6 +14,26 @@ function getRomsPath() {
     return getUserHome() + '/Desktop/roms';
 }
 
+function Cartridge () {
+
+}
+
+function loadNesFile(path) {
+    fs.readFile(path, (err, data) => {
+
+        // Check agains header
+        var iNesHeader = data.slice(0, 4);
+        if (iNesHeader.equals(Buffer.from('4E45531A', 'hex')) === true) {
+            console.log('Having rom file');
+        } else {
+            console.log('Not iNES ROM');
+            return;
+        }
+
+        
+    });  
+}
+
 console.log(getRomsPath());
 let path = getRomsPath();
 
@@ -45,6 +65,8 @@ fs.readdir(path, (err, files) => {
         console.log(checksum(data));
         checksum(data, 'sha1'); // cd5855be428295a3cc1793d6e80ce47562d23def
     });
+
+    loadNesFile(filePath);
 
     // document.body.innerHTML = "<p>"+files+"</p>"
 
