@@ -51,19 +51,22 @@ function loadNesFile(path) {
         var prgSize = progROM * 16384;
         var chrSize = chrROM * 8192;
 
-        var prg = data.slice(padding, prgSize);
-        var chr = data.slice(10000, chrSize);
+        var prg = Buffer.allocUnsafe(prgSize);
+        var chr = Buffer.allocUnsafe(chrSize);
 
-        console.log(chr);
-        console.log(padding, prgSize, chrSize);
-        console.log(chr.length);
-        console.log(prg.length);
-        console.log(data.length);
-        // console.log(data.toString('hex'));
-        // console.log('--------');
-        // console.log(prg.toString('hex'));
-        // console.log('--------');
-        // console.log(chr.toString('hex'));
+        for (var i = 0; i < prgSize; i++) {
+            prg[i] = data[padding + i];
+        }
+
+        for (var i = 0; i < chrSize; i++) {
+            chr[i] = data[padding + prgSize + i];
+        }
+
+        console.log(data.toString('hex'));
+        console.log('--------');
+        console.log(prg.toString('hex'));
+        console.log('--------');
+        console.log(chr.toString('hex'));
     });  
 }
 
