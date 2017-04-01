@@ -14,8 +14,12 @@ function getRomsPath() {
     return getUserHome() + '/Desktop/roms';
 }
 
-function Cartridge () {
-
+function Cartridge (prg, chr, mapper, mirror, battery) {
+    this.prg = prg;
+    this.chr = chr;
+    this.mapper = mapper;
+    this.mirror = mirror;
+    this.battery = battery;
 }
 
 function loadNesFile(path) {
@@ -67,6 +71,8 @@ function loadNesFile(path) {
         console.log(prg.toString('hex'));
         console.log('--------');
         console.log(chr.toString('hex'));
+
+        var c = new Cartridge(prg, chr, mapper, mirror, battery);
     });  
 }
 
