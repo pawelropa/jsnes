@@ -16,6 +16,7 @@
   "author": "Paweł Ropa",
   "license": "MIT",
   "devDependencies": {
-    "electron": "~1.6.2"
+    "electron": "~1.6.2",
+    "jasmine": "~2.5.3"
   }
 }
