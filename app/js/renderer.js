@@ -2,19 +2,19 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-const fs = require('fs')
-const os = require('os')
-const crypto = require('crypto')
+const fs = require('fs');
+const os = require('os');
+const crypto = require('crypto');
 
 function getUserHome() {
-  return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+    return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
 }
 
 function getRomsPath() {
     return getUserHome() + '/Desktop/roms';
 }
 
-function Cartridge (prg, chr, mapper, mirror, battery) {
+function Cartridge(prg, chr, mapper, mirror, battery) {
     this.prg = prg;
     this.chr = chr;
     this.mapper = mapper;
@@ -26,7 +26,7 @@ function loadNesFile(path) {
     fs.readFile(path, (err, data) => {
 
         console.log(data.length);
-        
+
         // Check agains header
         var iNesHeader = data.slice(0, 4);
         if (iNesHeader.equals(Buffer.from('4E45531A', 'hex')) === true) {
@@ -73,13 +73,13 @@ function loadNesFile(path) {
         console.log(chr.toString('hex'));
 
         var c = new Cartridge(prg, chr, mapper, mirror, battery);
-    });  
+    });
 }
 
 console.log(getRomsPath());
 let path = getRomsPath();
 
-function checksum (str, algorithm, encoding) {
+function checksum(str, algorithm, encoding) {
     return crypto
         .createHash(algorithm || 'md5')
         .update(str, 'utf8')
@@ -89,21 +89,21 @@ function checksum (str, algorithm, encoding) {
 fs.readdir(path, (err, files) => {
     console.log(files);
     var hash = crypto.createHash('MD5');
-    var filePath = path+'/'+files[0];
+    var filePath = path + '/' + files[0];
     console.log(filePath);
     var s = fs.createReadStream(filePath);
-    s.on('data', function (d) {
+    s.on('data', function(d) {
         console.log(d);
         hash.update(d);
     });
-    s.on('end', function () {
-          var d = hash.digest('hex');
-          console.log(d + '  ' + filePath);
-          console.log(d);
+    s.on('end', function() {
+        var d = hash.digest('hex');
+        console.log(d + '  ' + filePath);
+        console.log(d);
     });
 
-    fs.readFile(filePath, function (err, data) {
-        checksum(data);         // e53815e8c095e270c6560be1bb76a65d
+    fs.readFile(filePath, function(err, data) {
+        checksum(data); // e53815e8c095e270c6560be1bb76a65d
         console.log(checksum(data));
         checksum(data, 'sha1'); // cd5855be428295a3cc1793d6e80ce47562d23def
     });
@@ -113,4 +113,3 @@ fs.readdir(path, (err, files) => {
     // document.body.innerHTML = "<p>"+files+"</p>"
 
 });
-
