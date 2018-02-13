@@ -18,5 +18,8 @@
   "devDependencies": {
     "electron": "~1.6.2",
     "jasmine": "~2.5.3"
+  },
+  "dependencies": {
+    "jshint": "^2.9.5"
   }
 }
