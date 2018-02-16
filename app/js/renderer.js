@@ -26,7 +26,7 @@ var renderer = (function() {
     }
 
     function loadNesFile(path) {
-        fs.readFile(path, (err, data) => {}
+        fs.readFile(path, (err, data) => {
             console.log(data.length);
 
             // Check agains header
@@ -60,11 +60,11 @@ var renderer = (function() {
             var prg = Buffer.allocUnsafe(prgSize);
             var chr = Buffer.allocUnsafe(chrSize);
 
-            for (var i = 0; i < prgSize; i++) {
+            for (let i = 0; i < prgSize; i++) {
                 prg[i] = data[padding + i];
             }
 
-            for (var i = 0; i < chrSize; i++) {
+            for (let i = 0; i < chrSize; i++) {
                 chr[i] = data[padding + prgSize + i];
             }
 
@@ -85,7 +85,7 @@ var renderer = (function() {
         return crypto
             .createHash(algorithm || 'md5')
             .update(str, 'utf8')
-            .digest(encoding || 'hex')
+            .digest(encoding || 'hex');
     }
 
     fs.readdir(path, (err, files) => {
