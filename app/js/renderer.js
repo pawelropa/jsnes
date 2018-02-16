@@ -17,13 +17,7 @@ var renderer = (function() {
         return getUserHome() + '/Desktop/roms';
     }
 
-    function Cartridge(prg, chr, mapper, mirror, battery) {
-        this.prg = prg;
-        this.chr = chr;
-        this.mapper = mapper;
-        this.mirror = mirror;
-        this.battery = battery;
-    }
+
 
     function loadNesFile(path) {
         fs.readFile(path, (err, data) => {
