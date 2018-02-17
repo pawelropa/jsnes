@@ -1,8 +1,4 @@
 
-function Foo() {
-
-}
-
 class CartridgeLoader {
   constructor(dir) {
     this.dir = dir;
@@ -24,4 +20,10 @@ class Cartridge {
     this.battery = battery;
   }
 }
+
+module.exports = {
+  CartridgeLoader: CartridgeLoader,
+  INESHeaderParser: INESHeaderParser,
+  Cartridge: Cartridge
+};
 
