@@ -4,7 +4,8 @@
   "description": "A NES emulator written in JS and Electron",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test": "jest"
   },
   "repository": "https://github.com/pawelropa/jsnes",
   "keywords": [
@@ -17,9 +18,13 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "~1.6.2",
-    "jasmine": "~2.5.3"
+    "jasmine": "~2.5.3",
+    "jest": "~22.3.0"
   },
   "dependencies": {
     "jshint": "^2.9.5"
+  },
+  "jest": {
+    "verbose": true
   }
 }
