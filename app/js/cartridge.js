@@ -6,6 +6,8 @@ const crypto = require('crypto');
 class Loader {
   static loadCart(path) {
     return new Promise((resolve, reject) => {
+      //resolve('Resolved');
+      reject('Reject promise');
       console.log('Trying to load file at path' + path);
     });
   }
