@@ -33,10 +33,7 @@ class INESHeaderParser {
   }
 
   parse(data) {
-    console.log(data.length);
-
     return new Promise((resolve, reject) => {
-
       // First 4 bytes should be equal to 'NES\x1a' 
       var iNesHeader = data.slice(0, 4);
       if (iNesHeader.equals(Buffer.from('5E45531A', 'hex')) === false) {
@@ -44,20 +41,23 @@ class INESHeaderParser {
         reject(err);
       } 
 
-      var progROM = data.readInt8(4);
-      var chrROM = data.readInt8(5);
+      const progROM = data.readInt8(4);
+      const chrROM = data.readInt8(5);
 
-      var prgSize = progROM * 16384; // 0x4000 * header bytes
-      var chrSize = chrROM * 8192; // 0x2000 * header bytes
+      const prgSize = progROM * 16384; // 0x4000 * header bytes
+      const chrSize = chrROM * 8192; // 0x2000 * header bytes
 
-      var mirroring = ((data.readInt8(6) & 1) !== 0 ? 1 : 0);
-      var batteryRam = (data.readInt8(6) & 2) !== 0;
-      var trainer = (data.readInt8(6) & 4) !== 0;
-      var mapperType = (data.readInt8(6) >> 4) | (data.readInt8(6) & 0xF0);
+      const header6 = data.readInt8(6);
+      const header7 = data.readInt8(7);
 
-      var padding = 16;
+      var mirroring = ((data.readInt8(6) & 1) !== 0 ? 1 : 0); //TODO - determine mapper
+      var battery = (header6 >>> 1) & 1;
+      var trainer = (header6 >>> 2) & 1;
+      var mapperType = (data.readInt8(6) >> 4) | (data.readInt8(6) & 0xF0); //TODO - determine mirroring
+
+      var padding = 16; // 16 bytes for header
       if (trainer) {
-        padding += 512;
+        padding += 512; // 512 padding if trainer is present
       }
 
       var prg = Buffer.allocUnsafe(prgSize);
@@ -71,17 +71,9 @@ class INESHeaderParser {
         chr[i] = data[padding + prgSize + i];
       }
 
-      console.log(data.toString('hex'));
-      console.log('--------');
-      console.log(prg.toString('hex'));
-      console.log('--------');
-      console.log(chr.toString('hex'));
-
-      //var c = new Cartridge(prg, chr, mapper, mirror, battery);
-      return null;
+      const cartridge = Cartridge(prg, chr, mapper, mirror, battery);
+      resolve(cartridge);
     });
-
-
   }
 
   /*

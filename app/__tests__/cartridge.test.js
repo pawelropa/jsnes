@@ -19,7 +19,7 @@ test('Loader can load ROM', () => {
 
 test('Loader fails for non existing files', () => {
   expect.assertions(1);
-    
+
   return c.Loader.loadCart('doesNotExists.nes').then(reponse => {
     expect(null).not.toBeNull(); //Should not be called
   }, err => {
@@ -42,6 +42,24 @@ test('INESHeaderParser returns error when there is no proper header', () => {
     expect(null).not.toBeNull(); //Should not be called
   }, err => {
     expect(err).not.toBeNull();
+  });
+});
+
+test('INESHeaderParser has proper 4 bytes', () => {
+  expect.assertions(2);
+
+  const romFilePath = '/Users/pawel/Desktop/roms/SuperMarioBros.nes';
+
+  return c.Loader.loadCart(romFilePath).then(response => {
+    expect(response).not.toBeNull();
+
+    const parser = new c.INESHeaderParser(reponse);
+    
+    return parser.parse(response).then(response => {
+      expect(response).not.toBeNull();
+    }, err => {
+      expect(null).not.toBeNull(); 
+    });
   });
 });
 
