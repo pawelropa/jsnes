@@ -33,6 +33,18 @@ test('INESHdeaderParser to be defined', () => {
   expect(parser).not.toBeUndefined();
 });
 
+test('INESHeaderParser returns error when there is no proper header', () => {
+  expect.assertions(1);
+
+  const badHeader = Buffer.from('00000000', 'hex');
+  const parser = new c.INESHeaderParser(badHeader);
+  return parser.parse(badHeader).then(response => {
+    expect(null).not.toBeNull(); //Should not be called
+  }, err => {
+    expect(err).not.toBeNull();
+  });
+});
+
 test('Cartridge to be defined', () => {
   const cartridge = new c.Cartridge('', '', '', '', '');
   expect(cartridge).not.toBeNull();

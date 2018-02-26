@@ -35,56 +35,56 @@ class INESHeaderParser {
   parse(data) {
     console.log(data.length);
 
-    // Check agains header
-    var iNesHeader = data.slice(0, 4);
-    if (iNesHeader.equals(Buffer.from('4E45531A', 'hex')) === true) {
-      console.log('Having rom file');
-    } else {
-      console.log('Not iNES ROM');
-      return;
-    }
+    return new Promise((resolve, reject) => {
 
-    var progROM = data.readInt8(4);
-    var chrROM = data.readInt8(5);
+      // First 4 bytes should be equal to 'NES\x1a' 
+      var iNesHeader = data.slice(0, 4);
+      if (iNesHeader.equals(Buffer.from('5E45531A', 'hex')) === false) {
+        const err = Error('Wrong header format, should have \'NES\x1a\' in front');
+        reject(err);
+      } 
 
-    console.log(progROM);
-    console.log(chrROM);
+      var progROM = data.readInt8(4);
+      var chrROM = data.readInt8(5);
 
-    var mirroring = ((data.readInt8(6) & 1) !== 0 ? 1 : 0);
-    var batteryRam = (data.readInt8(6) & 2) !== 0;
-    var trainer = (data.readInt8(6) & 4) !== 0;
-    var mapperType = (data.readInt8(6) >> 4) | (data.readInt8(6) & 0xF0);
+      var prgSize = progROM * 16384; // 0x4000 * header bytes
+      var chrSize = chrROM * 8192; // 0x2000 * header bytes
 
-    var padding = 16;
-    if (trainer) {
-      padding += 512;
-    }
+      var mirroring = ((data.readInt8(6) & 1) !== 0 ? 1 : 0);
+      var batteryRam = (data.readInt8(6) & 2) !== 0;
+      var trainer = (data.readInt8(6) & 4) !== 0;
+      var mapperType = (data.readInt8(6) >> 4) | (data.readInt8(6) & 0xF0);
 
-    var prgSize = progROM * 16384;
-    var chrSize = chrROM * 8192;
+      var padding = 16;
+      if (trainer) {
+        padding += 512;
+      }
 
-    var prg = Buffer.allocUnsafe(prgSize);
-    var chr = Buffer.allocUnsafe(chrSize);
+      var prg = Buffer.allocUnsafe(prgSize);
+      var chr = Buffer.allocUnsafe(chrSize);
 
-    for (let i = 0; i < prgSize; i++) {
-      prg[i] = data[padding + i];
-    }
+      for (let i = 0; i < prgSize; i++) {
+        prg[i] = data[padding + i];
+      }
 
-    for (let i = 0; i < chrSize; i++) {
-      chr[i] = data[padding + prgSize + i];
-    }
+      for (let i = 0; i < chrSize; i++) {
+        chr[i] = data[padding + prgSize + i];
+      }
 
-    console.log(data.toString('hex'));
-    console.log('--------');
-    console.log(prg.toString('hex'));
-    console.log('--------');
-    console.log(chr.toString('hex'));
+      console.log(data.toString('hex'));
+      console.log('--------');
+      console.log(prg.toString('hex'));
+      console.log('--------');
+      console.log(chr.toString('hex'));
 
-    //var c = new Cartridge(prg, chr, mapper, mirror, battery);
-    return null;
+      //var c = new Cartridge(prg, chr, mapper, mirror, battery);
+      return null;
+    });
+
+
   }
 
-    /*
+  /*
   checksum() {
 
     function loadNesFile(path) {
@@ -127,7 +127,7 @@ class INESHeaderParser {
 
       loadNesFile(filePath);
 
-      // document.body.innerHTML = "<p>"+files+"</p>"
+// document.body.innerHTML = "<p>"+files+"</p>"
 
     });
   }
