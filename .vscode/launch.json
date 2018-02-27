@@ -7,23 +7,21 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/main.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Jest Tests",
             "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
             "args": [
                 "-i"
             ],
-            // "preLaunchTask": "build",
             "internalConsoleOptions": "openOnSessionStart",
             "outFiles": [
                 "${workspaceRoot}/app/__tests__"
             ],
-            // "envFile": "${workspaceRoot}/.env"
         }
-        // {
-        //     "type": "node",
-        //     "request": "launch",
-        //     "name": "Launch Program",
-        //     "program": "${workspaceFolder}/main.js"
-        // }
     ]
 }
