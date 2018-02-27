@@ -27,64 +27,68 @@ class Loader {
   }
 }
 
+class Cartridge {
+  constructor(prg, chr, mapper, mirror, battery) {
+    this.prg = prg;
+    this.chr = chr;
+    this.mapper = mapper;
+    this.mirror = mirror;
+    this.battery = battery;
+  }
+}
+
 class INESHeaderParser {
   constructor(romData) {
     this.romData = romData;
   }
 
   parse(data) {
-    console.log(data.length);
+    return new Promise((resolve, reject) => {
+      // First 4 bytes should be equal to 'NES\x1a' 
+      var iNesHeader = data.slice(0, 4);
+      var a = data.toString('hex');
 
-    // Check agains header
-    var iNesHeader = data.slice(0, 4);
-    if (iNesHeader.equals(Buffer.from('4E45531A', 'hex')) === true) {
-      console.log('Having rom file');
-    } else {
-      console.log('Not iNES ROM');
-      return;
-    }
+      if (iNesHeader.equals(Buffer.from('4E45531A', 'hex')) === false) {
+        const err = Error('Wrong header format, should have \'NES\x1a\' in front');
+        reject(err);
+      } 
 
-    var progROM = data.readInt8(4);
-    var chrROM = data.readInt8(5);
+      const progROM = data.readInt8(4);
+      const chrROM = data.readInt8(5);
 
-    console.log(progROM);
-    console.log(chrROM);
+      const prgSize = progROM * 16384; // 0x4000 * header bytes
+      const chrSize = chrROM * 8192; // 0x2000 * header bytes
 
-    var mirroring = ((data.readInt8(6) & 1) !== 0 ? 1 : 0);
-    var batteryRam = (data.readInt8(6) & 2) !== 0;
-    var trainer = (data.readInt8(6) & 4) !== 0;
-    var mapperType = (data.readInt8(6) >> 4) | (data.readInt8(6) & 0xF0);
+      const header6 = data.readInt8(6);
+      const header7 = data.readInt8(7);
 
-    var padding = 16;
-    if (trainer) {
-      padding += 512;
-    }
+      var mirroring = ((data.readInt8(6) & 1) !== 0 ? 1 : 0); //TODO - determine mapper
+      var battery = (header6 >>> 1) & 1;
+      var trainer = (header6 >>> 2) & 1;
+      var mapperType = (data.readInt8(6) >> 4) | (data.readInt8(6) & 0xF0); //TODO - determine mirroring
 
-    var prgSize = progROM * 16384;
-    var chrSize = chrROM * 8192;
+      var padding = 16; // 16 bytes for header
+      if (trainer) {
+        padding += 512; // 512 padding if trainer is present
+      }
 
-    var prg = Buffer.allocUnsafe(prgSize);
-    var chr = Buffer.allocUnsafe(chrSize);
+      var prg = Buffer.allocUnsafe(prgSize);
+      var chr = Buffer.allocUnsafe(chrSize);
 
-    for (let i = 0; i < prgSize; i++) {
-      prg[i] = data[padding + i];
-    }
+      for (let i = 0; i < prgSize; i++) {
+        prg[i] = data[padding + i];
+      }
 
-    for (let i = 0; i < chrSize; i++) {
-      chr[i] = data[padding + prgSize + i];
-    }
+      for (let i = 0; i < chrSize; i++) {
+        chr[i] = data[padding + prgSize + i];
+      }
 
-    console.log(data.toString('hex'));
-    console.log('--------');
-    console.log(prg.toString('hex'));
-    console.log('--------');
-    console.log(chr.toString('hex'));
-
-    //var c = new Cartridge(prg, chr, mapper, mirror, battery);
-    return null;
+      var cartridge = new Cartridge(prg, chr, mapperType, mirroring, battery);
+      resolve(cartridge);
+    });
   }
 
-    /*
+  /*
   checksum() {
 
     function loadNesFile(path) {
@@ -127,21 +131,11 @@ class INESHeaderParser {
 
       loadNesFile(filePath);
 
-      // document.body.innerHTML = "<p>"+files+"</p>"
+// document.body.innerHTML = "<p>"+files+"</p>"
 
     });
   }
   */
-}
-
-class Cartridge {
-  constructor(prg, chr, mapper, mirror, battery) {
-    this.prg = prg;
-    this.chr = chr;
-    this.mapper = mapper;
-    this.mirror = mirror;
-    this.battery = battery;
-  }
 }
 
 module.exports = {
