@@ -38,7 +38,7 @@ test('INESHeaderParser returns error when there is no proper header', () => {
 
   const badHeader = Buffer.from('00000000', 'hex');
   const parser = new c.INESHeaderParser(badHeader);
-  return parser.parse(badHeader).then(response => {
+  return parser.parse().then(response => {
     expect(null).not.toBeNull(); //Should not be called
   }, err => {
     expect(err).not.toBeNull();
@@ -55,7 +55,7 @@ test('INESHeaderParser has proper 4 bytes', () => {
 
     const parser = new c.INESHeaderParser(response);
     
-    return parser.parse(response).then(response => {
+    return parser.parse().then(response => {
       expect(response).not.toBeNull();
     }, err => {
       expect(null).not.toBeNull(); 
