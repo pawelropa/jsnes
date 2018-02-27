@@ -53,7 +53,7 @@ test('INESHeaderParser has proper 4 bytes', () => {
   return c.Loader.loadCart(romFilePath).then(response => {
     expect(response).not.toBeNull();
 
-    const parser = new c.INESHeaderParser(reponse);
+    const parser = new c.INESHeaderParser(response);
     
     return parser.parse(response).then(response => {
       expect(response).not.toBeNull();
@@ -64,7 +64,7 @@ test('INESHeaderParser has proper 4 bytes', () => {
 });
 
 test('Cartridge to be defined', () => {
-  const cartridge = new c.Cartridge('', '', '', '', '');
+  const cartridge = new c.Cartridge('');
   expect(cartridge).not.toBeNull();
   expect(cartridge).not.toBeUndefined();
 });

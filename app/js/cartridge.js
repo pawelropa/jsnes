@@ -27,6 +27,16 @@ class Loader {
   }
 }
 
+class Cartridge {
+  constructor(prg, chr, mapper, mirror, battery) {
+    this.prg = prg;
+    this.chr = chr;
+    this.mapper = mapper;
+    this.mirror = mirror;
+    this.battery = battery;
+  }
+}
+
 class INESHeaderParser {
   constructor(romData) {
     this.romData = romData;
@@ -36,7 +46,9 @@ class INESHeaderParser {
     return new Promise((resolve, reject) => {
       // First 4 bytes should be equal to 'NES\x1a' 
       var iNesHeader = data.slice(0, 4);
-      if (iNesHeader.equals(Buffer.from('5E45531A', 'hex')) === false) {
+      var a = data.toString('hex');
+
+      if (iNesHeader.equals(Buffer.from('4E45531A', 'hex')) === false) {
         const err = Error('Wrong header format, should have \'NES\x1a\' in front');
         reject(err);
       } 
@@ -71,7 +83,7 @@ class INESHeaderParser {
         chr[i] = data[padding + prgSize + i];
       }
 
-      const cartridge = Cartridge(prg, chr, mapper, mirror, battery);
+      var cartridge = new Cartridge(prg, chr, mapperType, mirroring, battery);
       resolve(cartridge);
     });
   }
@@ -124,16 +136,6 @@ class INESHeaderParser {
     });
   }
   */
-}
-
-class Cartridge {
-  constructor(prg, chr, mapper, mirror, battery) {
-    this.prg = prg;
-    this.chr = chr;
-    this.mapper = mapper;
-    this.mirror = mirror;
-    this.battery = battery;
-  }
 }
 
 module.exports = {
