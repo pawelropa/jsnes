@@ -7,19 +7,20 @@ const fs = require('fs');
 		sp = 0x00, // Stack pointer
 
 		// Flags
-		carry = 0,
-		zero = 0,
-		interrupt = 0,
-		decimalMode = 0,
-		brk = 0, //Break,
-		unused = 0,
-		overflow = 0,
-		sign = 0,
+		fc = 0, // Carry
+		fz = 0, // Zero
+		fi = 0, // Interrupt
+		fd = 0, // Decimal
+		fb = 0, // Break,
+		fu = 0, // Unused bit, presumably it is set sometimes
+		fo = 0, // Overflow
+		fn = 0, // Negative sign
 
 		pc = 0x0000, // Program counter - 16 bit
-		memory = Uint8Array(65535); // 0xFFFF
+		memory = Uint8Array(65535); // 0xFFFF,
+		tmp; // helper var
 
-	var mem_read = function (addr) {
+	var mem_read = function(addr) {
 		if (addr < 0x800) {
 			return memory[addr];
 		} else {
@@ -27,7 +28,7 @@ const fs = require('fs');
 		}
 	};
 
-	var mem_read_other = function () {
+	var mem_read_other = function(addr) {
 		if (addr < 0x2000) {
 			return ram[addr & 0x7FF];
 		} else if (addr <= 0x3FFF) {
@@ -35,85 +36,133 @@ const fs = require('fs');
 		} else if (addr >= 0x4000 && addr <= 0x4017) {
 			return apu_read(addr);
 		} else {
-			return mem_read_fp[addr >> 12](addr);
+			return memory[addr];
+			//return mem_read_fp[addr >> 12](addr);
 		}
 	};
+	
+	// IMPLIED mode
+	// IMIDIATE mode
+	// ZERO PAGE READ mode
+	// ZERO PAGE INDEX ADDRESSING mode 
 
-	var adc = function () { };
-	var ahx = function () { };
-	var alr = function () { };
-	var anc = function () { };
-	var and = function () { };
-	var arr = function () { };
-	var asl = function () { };
-	var axs = function () { };
-	var bcc = function () { };
-	var bcs = function () { };
-	var beq = function () { };
-	var bit = function () { };
-	var bmi = function () { };
-	var bne = function () { };
-	var bpl = function () { };
-	var brk = function () { };
-	var bvc = function () { };
-	var bvs = function () { };
-	var clc = function () { };
-	var cld = function () { };
-	var cli = function () { };
-	var clv = function () { };
-	var cmp = function () { };
-	var cpx = function () { };
-	var cpy = function () { };
-	var dcp = function () { };
-	var dec = function () { };
-	var dex = function () { };
-	var dey = function () { };
-	var eor = function () { };
-	var inc = function () { };
-	var inx = function () { };
-	var iny = function () { };
-	var isc = function () { };
-	var jmp = function () { };
-	var jsr = function () { };
-	var kil = function () { };
-	var las = function () { };
-	var lax = function () { };
-	var lda = function () { };
-	var ldx = function () { };
-	var ldy = function () { };
-	var lsr = function () { };
-	var nop = function () { };
-	var ora = function () { };
-	var pha = function () { };
-	var php = function () { };
-	var pla = function () { };
-	var plp = function () { };
-	var rla = function () { };
-	var rol = function () { };
-	var ror = function () { };
-	var rra = function () { };
-	var rti = function () { };
-	var rts = function () { };
-	var sax = function () { };
-	var sbc = function () { };
-	var sec = function () { };
-	var sed = function () { };
-	var sei = function () { };
-	var shx = function () { };
-	var shy = function () { };
-	var slo = function () { };
-	var sre = function () { };
-	var sta = function () { };
-	var stx = function () { };
-	var sty = function () { };
-	var tas = function () { };
-	var tax = function () { };
-	var tay = function () { };
-	var tsx = function () { };
-	var txa = function () { };
-	var txs = function () { };
-	var tya = function () { };
-	var xaa = function () { };
+	// Read modes types
+	var a_imp() = function() {};
+	var a_imm() = function() {};
+	var a_zp_r() = function() {};
+	var a_zpx_r() = function() {};
+	var a_zpy_r() = function() {};
+	var a_abs_r() = function() {};
+	var a_absx_r() = function() {};
+	var a_absy_r() = function() {};
+	var a_indx_r() = function() {};
+	var a_indy_r() = function() {};
+
+	// Write modes types
+	var w_zp_w() = function() {};
+	var w_zpx_w() = function() {};
+	var w_zpy_w() = function() {};
+	var w_abs_w() = function() {};
+	var w_absx_w() = function() {};
+	var w_absy_w() = function() {};
+	var w_indx_w() = function() {};
+	var w_indy_w() = function() {};
+
+	// Read modify write mode
+	var zp_rmw() = function() {};
+	var zpx_rmw() = function() {};
+	var abs_rmw() = function() {};
+	var absx_rmw() = function() {};
+	var absy_rmw() = function() {};
+	var indx_rmw() = function() {};
+	var indy_rmw() = function() {};
+	var rmw_w() = function() {};
+
+	var ppu_read = function(addr) {};
+	var apu_read = function(addr) {};
+
+	var adc = function (mem) {
+		tmp = this.acc + mem + this.fc;
+		this.fo = (tmp ^ this.acc) & (tmp ^ mem) & 0x80;
+		this.fc = (tmp & 0x100) > 8;
+		this.fz = this.fn = this.acc = tmp & 0xFF;
+		this.fz = !this.fz;
+	};
+
+	var ahx = function () {};
+	var alr = function () {};
+	var anc = function () {};
+	var and = function () {};
+	var arr = function () {};
+	var asl = function () {};
+	var axs = function () {};
+	var bcc = function () {};
+	var bcs = function () {};
+	var beq = function () {};
+	var bit = function () {};
+	var bmi = function () {};
+	var bne = function () {};
+	var bpl = function () {};
+	var brk = function () {};
+	var bvc = function () {};
+	var bvs = function () {};
+	var clc = function () {};
+	var cld = function () {};
+	var cli = function () {};
+	var clv = function () {};
+	var cmp = function () {};
+	var cpx = function () {};
+	var cpy = function () {};
+	var dcp = function () {};
+	var dec = function () {};
+	var dex = function () {};
+	var dey = function () {};
+	var eor = function () {};
+	var inc = function () {};
+	var inx = function () {};
+	var iny = function () {};
+	var isc = function () {};
+	var jmp = function () {};
+	var jsr = function () {};
+	var kil = function () {};
+	var las = function () {};
+	var lax = function () {};
+	var lda = function () {};
+	var ldx = function () {};
+	var ldy = function () {};
+	var lsr = function () {};
+	var nop = function () {};
+	var ora = function () {};
+	var pha = function () {};
+	var php = function () {};
+	var pla = function () {};
+	var plp = function () {};
+	var rla = function () {};
+	var rol = function () {};
+	var ror = function () {};
+	var rra = function () {};
+	var rti = function () {};
+	var rts = function () {};
+	var sax = function () {};
+	var sbc = function () {};
+	var sec = function () {};
+	var sed = function () {};
+	var sei = function () {};
+	var shx = function () {};
+	var shy = function () {};
+	var slo = function () {};
+	var sre = function () {};
+	var sta = function () {};
+	var stx = function () {};
+	var sty = function () {};
+	var tas = function () {};
+	var tax = function () {};
+	var tay = function () {};
+	var tsx = function () {};
+	var txa = function () {};
+	var txs = function () {};
+	var tya = function () {};
+	var xaa = function () {};
 
 	var opcodes = [
 		brk, ora, kil, slo, nop, ora, asl, slo, php, ora, asl, anc, nop, ora, asl, slo,
