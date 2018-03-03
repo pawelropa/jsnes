@@ -17,7 +17,8 @@ const fs = require('fs');
 		fn = 0, // Negative sign
 
 		pc = 0x0000, // Program counter - 16 bit
-		memory = Uint8Array(65535); // 0xFFFF
+		memory = Uint8Array(65535); // 0xFFFF,
+		tmp; // helper var
 
 	var mem_read = function(addr) {
 		if (addr < 0x800) {
@@ -80,9 +81,14 @@ const fs = require('fs');
 	var ppu_read = function(addr) {};
 	var apu_read = function(addr) {};
 
-	var adc = function () {
-		var addr = this.acc 
+	var adc = function (mem) {
+		tmp = this.acc + mem + this.fc;
+		this.fo = (tmp ^ this.acc) & (tmp ^ mem) & 0x80;
+		this.fc = (tmp & 0x100) > 8;
+		this.fz = this.fn = this.acc = tmp & 0xFF;
+		this.fz = !this.fz;
 	};
+
 	var ahx = function () {};
 	var alr = function () {};
 	var anc = function () {};
