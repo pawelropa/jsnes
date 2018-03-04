@@ -1,5 +1,15 @@
 const fs = require('fs');
 
+class Opcode {
+	constructor(opcodeFunction, addrMode, instructionSize, cycles, pageCycle) {
+		this.opcodeFunction = opcodeFunction;
+		this.addrMode = addrMode;
+		this.instructionSize = instructionSize;
+		this.cycles = cycles;
+		this.pageCycle = pageCycle;
+	}
+};
+
 (function CPU() {
 	var acc = 0x00, // Accumulator
 		x = 0x00, // X register
