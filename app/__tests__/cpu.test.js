@@ -5,4 +5,7 @@ test('CPU should be declared', () => {
     expect(cpu).not.toBeNull();
 });
 
-test('Setting specific bit to 1')
+test('Opcode should be declared', () => {
+    const opcode = new c.Opcode();
+    expect(opcode).not.toBeNull();
+});

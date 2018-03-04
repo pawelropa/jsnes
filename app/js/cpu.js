@@ -27,23 +27,23 @@ class Opcode {
 		fn = 0, // Negative sign
 
 		pc = 0x0000, // Program counter - 16 bit
-		memory = Uint8Array(65535); // 0xFFFF,
+		memory = new Uint8Array(65535), // 0xFFFF,
 		tmp; // helper var
 
 	const Mode = {
-		ACC = 0,
-		IMMEDIATE = 1,
-		ZERO_PAGE = 2,
-		ZERO_PAGE_X = 3,
-		ZERO_PAGE_Y = 4,
-		ABSOLUTE = 5,
-		ABSOLUTE_X = 6,
-		ABSOLUTE_Y = 7,
-		IMPLIED = 8,
-		RELATIVE = 9,
-		INDIRECT_X = 10,
-		INDIRECT_Y = 11,
-		ABSOLUTE_INDIRECT = 12,
+		ACC: 0,
+		IMMEDIATE: 1,
+		ZERO_PAGE: 2,
+		ZERO_PAGE_X: 3,
+		ZERO_PAGE_Y: 4,
+		ABSOLUTE: 5,
+		ABSOLUTE_X: 6,
+		ABSOLUTE_Y: 7,
+		IMPLIED: 8,
+		RELATIVE: 9,
+		INDIRECT_X: 10,
+		INDIRECT_Y: 11,
+		ABSOLUTE_INDIRECT: 12,
 	};
 
 	var mem_read = function(addr) {
@@ -67,46 +67,6 @@ class Opcode {
 		}
 	};
 	
-	// IMPLIED mode
-	// IMIDIATE mode
-	// ZERO PAGE READ mode
-	// ZERO PAGE INDEX ADDRESSING mode 
-
-	// Read modes types
-	var a_imp() = function() {};
-	var a_imm() = function() {};
-	var a_zp_r() = function() {};
-	var a_zpx_r() = function() {};
-	var a_zpy_r() = function() {};
-	var a_abs_r() = function() {};
-	var a_absx_r() = function() {};
-	var a_absy_r() = function() {};
-	var a_indx_r() = function() {};
-	var a_indy_r() = function() {};
-
-	// Write modes types
-	var w_zp_w() = function() {};
-	var w_zpx_w() = function() {};
-	var w_zpy_w() = function() {};
-	var w_abs_w() = function() {};
-	var w_absx_w() = function() {};
-	var w_absy_w() = function() {};
-	var w_indx_w() = function() {};
-	var w_indy_w() = function() {};
-
-	// Read modify write mode
-	var zp_rmw() = function() {};
-	var zpx_rmw() = function() {};
-	var abs_rmw() = function() {};
-	var absx_rmw() = function() {};
-	var absy_rmw() = function() {};
-	var indx_rmw() = function() {};
-	var indy_rmw() = function() {};
-	var rmw_w() = function() {};
-
-	var ppu_read = function(addr) {};
-	var apu_read = function(addr) {};
-
 	var adc = function (mem) {
 		tmp = this.acc + mem + this.fc;
 		this.fo = (tmp ^ this.acc) & (tmp ^ mem) & 0x80;
@@ -318,5 +278,6 @@ class CPU {
 }
 
 module.exports = {
-	CPU: CPU
+	CPU: CPU,
+	Opcode: Opcode,
 };
