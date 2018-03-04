@@ -20,6 +20,22 @@ const fs = require('fs');
 		memory = Uint8Array(65535); // 0xFFFF,
 		tmp; // helper var
 
+	const Mode = {
+		ACC = 0,
+		IMMEDIATE = 1,
+		ZERO_PAGE = 2,
+		ZERO_PAGE_X = 3,
+		ZERO_PAGE_Y = 4,
+		ABSOLUTE = 5,
+		ABSOLUTE_X = 6,
+		ABSOLUTE_Y = 7,
+		IMPLIED = 8,
+		RELATIVE = 9,
+		INDIRECT_X = 10,
+		INDIRECT_Y = 11,
+		ABSOLUTE_INDIRECT = 12,
+	};
+
 	var mem_read = function(addr) {
 		if (addr < 0x800) {
 			return memory[addr];
