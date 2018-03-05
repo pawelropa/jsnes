@@ -66,6 +66,18 @@ class Opcode {
 			//return mem_read_fp[addr >> 12](addr);
 		}
 	};
+
+	var setZero = function(value) {
+		this.fz = value == 0 ? 1 : 0;
+	};
+
+	var setNegative = function(value) {
+		this.fn = value & 0x80 != 0 ? 1 : 0;	
+	}
+
+	var setCarry = function(value) {
+		this.fc = value > 0xff;
+	}
 	
 	var adc = function (mem) {
 		// unsigned int temp = src + AC + (IF_CARRY() ? 1 : 0);
@@ -76,9 +88,12 @@ class Opcode {
 		// AC = ((BYTE) temp);
 
 		var tmp = this.acc + mem + this.fc;
-		this.fz = tmp == 0 ? 1 : 0;
-		this.fn = tmp & 0x80 != 0 ? 1 : 0;
-		this.fc = tmp > 0xff;
+		setZero(tmp);
+		setNegative(tmp);
+		setCarry(tmp);
+		// this.fz = tmp == 0 ? 1 : 0;
+		// this.fn = tmp & 0x80 != 0 ? 1 : 0;
+		// this.fc = tmp > 0xff;
 		this.fo = !(((this.acc ^ mem) & 0x80) && ((this.acc ^ tmp) & 0x80));
 
 		this.acc = tmp;
@@ -92,11 +107,13 @@ class Opcode {
 	var ahx = function () {};
 	var alr = function () {};
 	var anc = function () {};
-	
+
 	var and = function (mem) {
 		mem = this.acc & mem;
-		this.fz = mem == 0 ? 1 : 0;
-		this.fn = tmp & 0x80 != 0 ? 1 : 0;
+		setZero(mem);
+		setNegative(mem);
+		// this.fz = mem == 0 ? 1 : 0;
+		// this.fn = tmp & 0x80 != 0 ? 1 : 0;
 		this.acc = mem	
 	};
 
