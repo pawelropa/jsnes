@@ -68,11 +68,25 @@ class Opcode {
 	};
 	
 	var adc = function (mem) {
-		tmp = this.acc + mem + this.fc;
-		this.fo = (tmp ^ this.acc) & (tmp ^ mem) & 0x80;
-		this.fc = (tmp & 0x100) > 8;
-		this.fz = this.fn = this.acc = tmp & 0xFF;
-		this.fz = !this.fz;
+		// unsigned int temp = src + AC + (IF_CARRY() ? 1 : 0);
+		// SET_ZERO(temp & 0xff);	/* This is not valid in decimal mode */
+		// SET_SIGN(temp);
+		// SET_OVERFLOW(!((AC ^ src) & 0x80) && ((AC ^ temp) & 0x80));
+		// SET_CARRY(temp > 0xff
+		// AC = ((BYTE) temp);
+
+		var tmp = this.acc + mem + this.fc;
+		this.fz = tmp == 0 ? 1 : 0;
+		this.fn = value & 0x80 != 0 ? 1 : 0;
+		this.fc = tmp > 0xff;
+		this.fo = !(((this.acc ^ mem) & 0x80) && ((this.acc ^ tmp) & 0x80));
+		
+		this.acc = tmp;
+
+		// this.fo = (tmp ^ this.acc) & (tmp ^ mem) & 0x80;
+		// this.fc = (tmp & 0x100) > 8;
+		// this.fz = this.fn = this.acc = tmp & 0xFF;
+		// this.fz = !this.fz;
 	};
 
 	var ahx = function () {};
