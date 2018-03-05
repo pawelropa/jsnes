@@ -77,10 +77,10 @@ class Opcode {
 
 		var tmp = this.acc + mem + this.fc;
 		this.fz = tmp == 0 ? 1 : 0;
-		this.fn = value & 0x80 != 0 ? 1 : 0;
+		this.fn = tmp & 0x80 != 0 ? 1 : 0;
 		this.fc = tmp > 0xff;
 		this.fo = !(((this.acc ^ mem) & 0x80) && ((this.acc ^ tmp) & 0x80));
-		
+
 		this.acc = tmp;
 
 		// this.fo = (tmp ^ this.acc) & (tmp ^ mem) & 0x80;
@@ -92,7 +92,14 @@ class Opcode {
 	var ahx = function () {};
 	var alr = function () {};
 	var anc = function () {};
-	var and = function () {};
+	
+	var and = function (mem) {
+		mem = this.acc & mem;
+		this.fz = mem == 0 ? 1 : 0;
+		this.fn = tmp & 0x80 != 0 ? 1 : 0;
+		this.acc = mem	
+	};
+
 	var arr = function () {};
 	var asl = function () {};
 	var axs = function () {};
