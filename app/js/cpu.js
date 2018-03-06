@@ -118,9 +118,25 @@ class Opcode {
 	};
 
 	var arr = function () {};
-	var asl = function () {};
+	var asl = function (mem, mode) {
+		setCarry(mem & 0x80);
+		mem <<= 1;
+		mem &= 0xFF;
+		setNegative(mem);
+		setZero(mem);
+		
+		if (mode == Mode.ACC) {
+			this.acc = mem
+		} else {
+// ????
+		}
+	};
 	var axs = function () {};
-	var bcc = function () {};
+	var bcc = function () {
+		if (this.fc == 0) {
+			
+		}	
+	};
 	var bcs = function () {};
 	var beq = function () {};
 	var bit = function () {};
