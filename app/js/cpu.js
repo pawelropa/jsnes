@@ -134,7 +134,7 @@ class Opcode {
 	var axs = function () {};
 	var bcc = function () {
 		if (this.fc == 0) {
-			
+
 		}	
 	};
 	var bcs = function () {};
@@ -146,8 +146,14 @@ class Opcode {
 	var brk = function () {};
 	var bvc = function () {};
 	var bvs = function () {};
-	var clc = function () {};
-	var cld = function () {};
+
+	var clc = function () {
+		this.fc = 0;
+	};
+	var cld = function () {
+		this.fd = 0;
+	};
+
 	var cli = function () {};
 	var clv = function () {};
 	var cmp = function () {};
