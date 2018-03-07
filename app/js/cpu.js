@@ -66,23 +66,77 @@ class Opcode {
 			//return mem_read_fp[addr >> 12](addr);
 		}
 	};
+
+	var setZero = function(value) {
+		this.fz = value == 0 ? 1 : 0;
+	};
+
+	var setNegative = function(value) {
+		this.fn = value & 0x80 != 0 ? 1 : 0;	
+	}
+
+	var setCarry = function(value) {
+		this.fc = value > 0xff;
+	}
 	
 	var adc = function (mem) {
-		tmp = this.acc + mem + this.fc;
-		this.fo = (tmp ^ this.acc) & (tmp ^ mem) & 0x80;
-		this.fc = (tmp & 0x100) > 8;
-		this.fz = this.fn = this.acc = tmp & 0xFF;
-		this.fz = !this.fz;
+		// unsigned int temp = src + AC + (IF_CARRY() ? 1 : 0);
+		// SET_ZERO(temp & 0xff);	/* This is not valid in decimal mode */
+		// SET_SIGN(temp);
+		// SET_OVERFLOW(!((AC ^ src) & 0x80) && ((AC ^ temp) & 0x80));
+		// SET_CARRY(temp > 0xff
+		// AC = ((BYTE) temp);
+
+		var tmp = this.acc + mem + this.fc;
+		setZero(tmp);
+		setNegative(tmp);
+		setCarry(tmp);
+		// this.fz = tmp == 0 ? 1 : 0;
+		// this.fn = tmp & 0x80 != 0 ? 1 : 0;
+		// this.fc = tmp > 0xff;
+		this.fo = !(((this.acc ^ mem) & 0x80) && ((this.acc ^ tmp) & 0x80));
+
+		this.acc = tmp;
+
+		// this.fo = (tmp ^ this.acc) & (tmp ^ mem) & 0x80;
+		// this.fc = (tmp & 0x100) > 8;
+		// this.fz = this.fn = this.acc = tmp & 0xFF;
+		// this.fz = !this.fz;
 	};
 
 	var ahx = function () {};
 	var alr = function () {};
 	var anc = function () {};
-	var and = function () {};
+
+	var and = function (mem) {
+		mem = this.acc & mem;
+		setZero(mem);
+		setNegative(mem);
+		// this.fz = mem == 0 ? 1 : 0;
+		// this.fn = tmp & 0x80 != 0 ? 1 : 0;
+		this.acc = mem	
+	};
+
 	var arr = function () {};
-	var asl = function () {};
+	var asl = function (mem, mode) {
+		setCarry(mem & 0x80);
+		mem <<= 1;
+		mem &= 0xFF;
+		setNegative(mem);
+		setZero(mem);
+		
+		if (mode == Mode.ACC) {
+			this.acc = mem
+		} else {
+// ????
+		}
+	};
 	var axs = function () {};
-	var bcc = function () {};
+	var bcc = function () {
+		if (this.fc == 0) {
+
+		}	
+	};
 	var bcs = function () {};
 	var beq = function () {};
 	var bit = function () {};
@@ -92,8 +146,14 @@ class Opcode {
 	var brk = function () {};
 	var bvc = function () {};
 	var bvs = function () {};
-	var clc = function () {};
-	var cld = function () {};
+
+	var clc = function () {
+		this.fc = 0;
+	};
+	var cld = function () {
+		this.fd = 0;
+	};
+
 	var cli = function () {};
 	var clv = function () {};
 	var cmp = function () {};
