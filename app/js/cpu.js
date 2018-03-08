@@ -67,6 +67,48 @@ class Opcode {
 		}
 	};
 
+	var bigCycle = function() {
+		var opcode = mem_read(this.pc);
+		var op = opcodes[opcode];
+
+		var addrMode = op.addrMode;
+		var address = 0;
+
+		switch (addrMode) {
+			case Mode.ACC:
+				address = 0;
+				break;
+			case Mode.IMMEDIATE:
+				address = this.pc + 1;
+				break;
+			case Mode.ZERO_PAGE:
+				break;
+			case Mode.ZERO_PAGE_X:
+				break;
+			case Mode.ZERO_PAGE_Y:
+				break;
+			case Mode.ABSOLUTE:
+				 break;
+			case Mode.ABSOLUTE_X:
+				break;
+			case Mode.ABSOLUTE_Y:
+				 break;
+			case Mode.IMPLIED:
+				address = 0;
+				break;
+			case Mode.RELATIVE:
+				break;
+			case Mode.INDIRECT_X:
+				break;
+			case Mode.INDIRECT_Y:
+				break;
+			case Mode.ABSOLUTE_INDIRECT:
+				break;
+			default:
+				break;
+		}
+	};
+
 	var setZero = function(value) {
 		this.fz = value == 0 ? 1 : 0;
 	};
