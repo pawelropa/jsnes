@@ -10,6 +10,45 @@ class Opcode {
 	}
 };
 
+class Bit8 {
+
+}
+
+class Bit16 {
+
+}
+
+class CPU {
+	constructor(acc, x, y, sp, sf, pc, c, z, i, d, b, u, o, s) {
+	  this.acc = acc;
+	  this.x = x;
+	  this.y = y;
+	  this.sp = sp;
+	  this.sf = sf;
+	  this.pc = pc;
+	  this.c = c; //Carry flag
+	  this.z = z; //Zero flag
+	  this.i = i; //Interrupt flag
+	  this.d = d; //Decimal flag
+	  this.b = b; //Break flag
+	  this.u = u; //Unused flag
+	  this.o = o; //Overflow flag
+	  this.s = s; //Sign flag
+	}
+
+	getBit(value, position) {
+		return (value >> position) & 1;
+	}
+
+	setBit(value, position) {
+		return value | (1 << position)
+	}
+
+	clearBit(value, position) {
+		return value & ~(1 << position)
+	}
+}
+
 (function CPU() {
 	var acc = 0x00, // Accumulator
 		x = 0x00, // X register
@@ -77,7 +116,7 @@ class Opcode {
 		switch (addrMode) {
 			case Mode.ACC:
 				address = 0;
-				break;
+				brea;
 			case Mode.IMMEDIATE:
 				address = this.pc + 1;
 				break;
@@ -512,36 +551,7 @@ class Opcode {
 	];
 })();
 
-class CPU {
-	// constructor(acc, x, y, sp, sf, pc, c, z, i, d, b, u, o, s) {
-	//   this.acc = acc;
-	//   this.x = x;
-	//   this.y = y;
-	//   this.sp = sp;
-	//   this.sf = sf;
-	//   this.pc = pc;
-	//   this.c = c; //Carry flag
-	//   this.z = z; //Zero flag
-	//   this.i = i; //Interrupt flag
-	//   this.d = d; //Decimal flag
-	//   this.b = b; //Break flag
-	//   this.u = u; //Unused flag
-	//   this.o = o; //Overflow flag
-	//   this.s = s; //Sign flag
-	// }
 
-	getBit(value, position) {
-		return (value >> position) & 1;
-	}
-
-	setBit(value, position) {
-		return value | (1 << position)
-	}
-
-	clearBit(value, position) {
-		return value & ~(1 << position)
-	}
-}
 
 module.exports = {
 	CPU: CPU,
