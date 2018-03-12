@@ -185,9 +185,17 @@ class CPU {
 		// this.fz = !this.fz;
 	};
 
-	var ahx = function () {};
-	var alr = function () {};
-	var anc = function () {};
+	var ahx = function () {
+		assert(false, "ahx is an illegal opcode");
+	};
+
+	var alr = function () {
+		assert(false, "alr is an illegal opcode");
+	};
+
+	var anc = function () {
+		assert(false, "anc is an illegal opcode");
+	};
 
 	var and = function (mem) {
 		mem = this.acc & mem;
@@ -198,7 +206,10 @@ class CPU {
 		this.acc = mem	
 	};
 
-	var arr = function () {};
+	var arr = function () {
+		assert(false, "arr is an illegal opcode");
+	};
+
 	var asl = function (mem, mode) {
 		setCarry(mem & 0x80);
 		mem <<= 1;
@@ -212,15 +223,24 @@ class CPU {
 // ????
 		}
 	};
-	var axs = function () {};
+
+	var axs = function () {
+		assert(false, "axs is an illegal opcode");
+	};
+
 	var bcc = function () {
 		if (this.fc == 0) {
-
+// ????
 		}	
 	};
+
 	var bcs = function () {};
 	var beq = function () {};
-	var bit = function () {};
+
+	var bit = function () {
+		
+	};
+
 	var bmi = function () {};
 	var bne = function () {};
 	var bpl = function () {};
@@ -235,9 +255,21 @@ class CPU {
 		this.fd = 0;
 	};
 
-	var cli = function () {};
-	var clv = function () {};
-	var cmp = function () {};
+	var cli = function () {
+		this.fi = 0;
+	};
+
+	var clv = function () {
+		this.fo = 0;
+	};
+
+	var cmp = function (mem) {
+		var tmp = this.acc - mem;
+		setCarry(tmp < 0x100);
+		setNegative(tmp);
+		setZero(tmp &= 0xFF);	
+	};
+
 	var cpx = function () {};
 	var cpy = function () {};
 	var dcp = function () {};
