@@ -10,6 +10,45 @@ class Opcode {
 	}
 };
 
+class Bit8 {
+
+}
+
+class Bit16 {
+
+}
+
+class CPU {
+	constructor(acc, x, y, sp, sf, pc, c, z, i, d, b, u, o, s) {
+	  this.acc = acc;
+	  this.x = x;
+	  this.y = y;
+	  this.sp = sp;
+	  this.sf = sf;
+	  this.pc = pc;
+	  this.c = c; //Carry flag
+	  this.z = z; //Zero flag
+	  this.i = i; //Interrupt flag
+	  this.d = d; //Decimal flag
+	  this.b = b; //Break flag
+	  this.u = u; //Unused flag
+	  this.o = o; //Overflow flag
+	  this.s = s; //Sign flag
+	}
+
+	getBit(value, position) {
+		return (value >> position) & 1;
+	}
+
+	setBit(value, position) {
+		return value | (1 << position)
+	}
+
+	clearBit(value, position) {
+		return value & ~(1 << position)
+	}
+}
+
 (function CPU() {
 	var acc = 0x00, // Accumulator
 		x = 0x00, // X register
@@ -67,6 +106,48 @@ class Opcode {
 		}
 	};
 
+	var bigCycle = function() {
+		var opcode = mem_read(this.pc);
+		var op = opcodes[opcode];
+
+		var addrMode = op.addrMode;
+		var address = 0;
+
+		switch (addrMode) {
+			case Mode.ACC:
+				address = 0;
+				brea;
+			case Mode.IMMEDIATE:
+				address = this.pc + 1;
+				break;
+			case Mode.ZERO_PAGE:
+				break;
+			case Mode.ZERO_PAGE_X:
+				break;
+			case Mode.ZERO_PAGE_Y:
+				break;
+			case Mode.ABSOLUTE:
+				 break;
+			case Mode.ABSOLUTE_X:
+				break;
+			case Mode.ABSOLUTE_Y:
+				 break;
+			case Mode.IMPLIED:
+				address = 0;
+				break;
+			case Mode.RELATIVE:
+				break;
+			case Mode.INDIRECT_X:
+				break;
+			case Mode.INDIRECT_Y:
+				break;
+			case Mode.ABSOLUTE_INDIRECT:
+				break;
+			default:
+				break;
+		}
+	};
+
 	var setZero = function(value) {
 		this.fz = value == 0 ? 1 : 0;
 	};
@@ -104,9 +185,17 @@ class Opcode {
 		// this.fz = !this.fz;
 	};
 
-	var ahx = function () {};
-	var alr = function () {};
-	var anc = function () {};
+	var ahx = function () {
+		assert(false, "ahx is an illegal opcode");
+	};
+
+	var alr = function () {
+		assert(false, "alr is an illegal opcode");
+	};
+
+	var anc = function () {
+		assert(false, "anc is an illegal opcode");
+	};
 
 	var and = function (mem) {
 		mem = this.acc & mem;
@@ -117,7 +206,10 @@ class Opcode {
 		this.acc = mem	
 	};
 
-	var arr = function () {};
+	var arr = function () {
+		assert(false, "arr is an illegal opcode");
+	};
+
 	var asl = function (mem, mode) {
 		setCarry(mem & 0x80);
 		mem <<= 1;
@@ -131,15 +223,24 @@ class Opcode {
 // ????
 		}
 	};
-	var axs = function () {};
+
+	var axs = function () {
+		assert(false, "axs is an illegal opcode");
+	};
+
 	var bcc = function () {
 		if (this.fc == 0) {
-
+// ????
 		}	
 	};
+
 	var bcs = function () {};
 	var beq = function () {};
-	var bit = function () {};
+
+	var bit = function () {
+		
+	};
+
 	var bmi = function () {};
 	var bne = function () {};
 	var bpl = function () {};
@@ -154,9 +255,21 @@ class Opcode {
 		this.fd = 0;
 	};
 
-	var cli = function () {};
-	var clv = function () {};
-	var cmp = function () {};
+	var cli = function () {
+		this.fi = 0;
+	};
+
+	var clv = function () {
+		this.fo = 0;
+	};
+
+	var cmp = function (mem) {
+		var tmp = this.acc - mem;
+		setCarry(tmp < 0x100);
+		setNegative(tmp);
+		setZero(tmp &= 0xFF);	
+	};
+
 	var cpx = function () {};
 	var cpy = function () {};
 	var dcp = function () {};
@@ -470,36 +583,7 @@ class Opcode {
 	];
 })();
 
-class CPU {
-	// constructor(acc, x, y, sp, sf, pc, c, z, i, d, b, u, o, s) {
-	//   this.acc = acc;
-	//   this.x = x;
-	//   this.y = y;
-	//   this.sp = sp;
-	//   this.sf = sf;
-	//   this.pc = pc;
-	//   this.c = c; //Carry flag
-	//   this.z = z; //Zero flag
-	//   this.i = i; //Interrupt flag
-	//   this.d = d; //Decimal flag
-	//   this.b = b; //Break flag
-	//   this.u = u; //Unused flag
-	//   this.o = o; //Overflow flag
-	//   this.s = s; //Sign flag
-	// }
 
-	getBit(value, position) {
-		return (value >> position) & 1;
-	}
-
-	setBit(value, position) {
-		return value | (1 << position)
-	}
-
-	clearBit(value, position) {
-		return value & ~(1 << position)
-	}
-}
 
 module.exports = {
 	CPU: CPU,
