@@ -272,7 +272,11 @@ class CPU {
 
 	var cpx = function () {};
 	var cpy = function () {};
-	var dcp = function () {};
+
+	var dcp = function () {
+		assert(false, "dcp is an illegal opcode");	
+	};
+
 	var dec = function () {};
 	var dex = function () {};
 	var dey = function () {};
@@ -280,12 +284,26 @@ class CPU {
 	var inc = function () {};
 	var inx = function () {};
 	var iny = function () {};
-	var isc = function () {};
+
+	var isc = function () {
+		assert(false, "isc is an illegal opcode");
+	};
+
 	var jmp = function () {};
 	var jsr = function () {};
-	var kil = function () {};
-	var las = function () {};
-	var lax = function () {};
+
+	var kil = function () {
+		assert(false, "kil is an illegal opcode");
+	};
+
+	var las = function () {
+		assert(false, "las is an illegal opcode");
+	};
+
+	var lax = function () {
+		assert(false, "lax is an illegal opcode");
+	};
+
 	var lda = function () {};
 	var ldx = function () {};
 	var ldy = function () {};
@@ -296,32 +314,64 @@ class CPU {
 	var php = function () {};
 	var pla = function () {};
 	var plp = function () {};
-	var rla = function () {};
+
+	var rla = function () {
+		assert(false, "rla is an illegal opcode");
+	};
+
 	var rol = function () {};
 	var ror = function () {};
-	var rra = function () {};
+
+	var rra = function () {
+		assert(false, "rra is an illegal opcode");
+	};
+
 	var rti = function () {};
 	var rts = function () {};
-	var sax = function () {};
+
+	var sax = function () {
+		assert(false, "sax is an illegal opcode");
+	};
+
 	var sbc = function () {};
 	var sec = function () {};
 	var sed = function () {};
 	var sei = function () {};
-	var shx = function () {};
-	var shy = function () {};
-	var slo = function () {};
-	var sre = function () {};
+
+	var shx = function () {
+		assert(false, "shx is an illegal opcode");
+	};
+
+	var shy = function () {
+		assert(false, "shy is an illegal opcode");
+	};
+
+	var slo = function () {
+		assert(false, "slo is an illegal opcode");
+	};
+
+	var sre = function () {
+		assert(false, "sre is an illegal opcode");
+	};
+
 	var sta = function () {};
 	var stx = function () {};
 	var sty = function () {};
-	var tas = function () {};
+
+	var tas = function () {
+		assert(false, "tas is an illegal opcode");
+	};
+
 	var tax = function () {};
 	var tay = function () {};
 	var tsx = function () {};
 	var txa = function () {};
 	var txs = function () {};
 	var tya = function () {};
-	var xaa = function () {};
+
+	var xaa = function () {
+		assert(false, "xaa is an illegal opcode");
+	};
 
 	var opcodes = [
 		new Opcode(brk, Mode.IMPLIED, 1, 7, 0),
@@ -582,8 +632,6 @@ class CPU {
 		new Opcode(isc, Mode.ABSOLUTE_X, 0, 7, 0),
 	];
 })();
-
-
 
 module.exports = {
 	CPU: CPU,
