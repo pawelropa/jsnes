@@ -67,7 +67,8 @@ class CPU {
 
 		pc = 0x0000, // Program counter - 16 bit
 		memory = new Uint8Array(65535), // 0xFFFF,
-		tmp; // helper var
+		tmp = 0, // helper var
+		cycles = 0;
 
 	const Mode = {
 		ACC: 0,
@@ -228,9 +229,16 @@ class CPU {
 		assert(false, "axs is an illegal opcode");
 	};
 
-	var bcc = function () {
-		if (this.fc == 0) {
+	var bcc = function (mem) {
+		if (this.fc != 0) {
 // ????
+			var rel_addr = this.pc + mem
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem
 		}	
 	};
 
@@ -615,24 +623,7 @@ class CPU {
 		new Opcode(inc, Mode.ABSOLUTE, 3, 6, 0),
 		new Opcode(isc, Mode.ABSOLUTE, 0, 6, 0),
 		new Opcode(beq, Mode.RELATIVE, 2, 2, 1),
-		new Opcode(sbc, Mode.INDIRECT_Y, 2, 5, 1),
-		new Opcode(kil, Mode.IMPLIED, 0, 2, 0),
-		new Opcode(isc, Mode.INDIRECT_Y, 0, 8, 0),
-		new Opcode(nop, Mode.ZERO_PAGE_X, 2, 4, 0),
-		new Opcode(sbc, Mode.ZERO_PAGE_X, 2, 4, 0),
-		new Opcode(inc, Mode.ZERO_PAGE_X, 2, 6, 0),
-		new Opcode(isc, Mode.ZERO_PAGE_X, 0, 6, 0),
-		new Opcode(sed, Mode.IMPLIED, 1, 2, 0),
-		new Opcode(sbc, Mode.ABSOLUTE_Y, 3, 4, 1),
-		new Opcode(nop, Mode.IMPLIED, 1, 2, 0),
-		new Opcode(isc, Mode.ABSOLUTE_Y, 0, 7, 0),
-		new Opcode(nop, Mode.ABSOLUTE_X, 3, 4, 1),
-		new Opcode(sbc, Mode.ABSOLUTE_X, 3, 4, 1),
-		new Opcode(inc, Mode.ABSOLUTE_X, 3, 7, 0),
-		new Opcode(isc, Mode.ABSOLUTE_X, 0, 7, 0),
-	];
-})();
-
+	
 module.exports = {
 	CPU: CPU,
 	Opcode: Opcode,
