@@ -160,6 +160,14 @@ class CPU {
 	var setCarry = function(value) {
 		this.fc = value > 0xff;
 	}
+
+	var setOverflow = function(value) {
+		if (value) {
+			this.fo = 1;
+		} else { 
+			this.fo = 0;
+		}
+	}
 	
 	var adc = function (mem) {
 		// unsigned int temp = src + AC + (IF_CARRY() ? 1 : 0);
@@ -230,28 +238,89 @@ class CPU {
 	};
 
 	var bcc = function (mem) {
-		if (this.fc != 0) {
+		if (!this.fc) {
 // ????
-			var rel_addr = this.pc + mem
+			var rel_addr = this.pc + mem;
 			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
 			this.cycles += 1;
 			if (a) {
 				this.cycles += 1;
 			}
-			this.pc = mem
+			this.pc = mem;
 		}	
 	};
 
-	var bcs = function () {};
-	var beq = function () {};
-
-	var bit = function () {
+	var bcs = function (mem) {
+		if (this.fc) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
+	};
+	var beq = function (mem) {
+		if (this.fz) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
 		
 	};
 
-	var bmi = function () {};
-	var bne = function () {};
-	var bpl = function () {};
+	var bit = function (mem) {
+		setNegative(mem);	
+		setOverflow(0x40 & mem);
+		setZero(mem & this.acc);
+	};
+
+	var bmi = function (mem) {
+		if (this.fn) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
+	};
+
+	var bne = function (mem) {
+		if (!this.fz) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
+	};
+
+	var bpl = function (mem) {
+		if (!this.fn) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
+	};
+
 	var brk = function () {};
 	var bvc = function () {};
 	var bvs = function () {};
