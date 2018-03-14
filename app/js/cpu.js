@@ -546,12 +546,44 @@ class CPU {
 		assert(false, "tas is an illegal opcode");
 	};
 
-	var tax = function () {};
-	var tay = function () {};
-	var tsx = function () {};
-	var txa = function () {};
-	var txs = function () {};
-	var tya = function () {};
+	var tax = function () {
+		var src = this.acc;
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var tay = function () {
+		var src = this.acc;
+		setNegative(src);
+		setZero(src);
+		this.y = src;
+	};
+
+	var tsx = function () {
+		var src = this.sp;
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var txa = function () {
+		var src = this.x;
+		setNegative(src);
+		setZero(src);
+		this.acc = src;
+	};
+
+	var txs = function () {
+		this.sp = this.x;
+	};
+
+	var tya = function () {
+		var src = this.y;
+		setNegative(src);
+		setZero(src);
+		this.acc = src;
+	};
 
 	var xaa = function () {
 		assert(false, "xaa is an illegal opcode");
