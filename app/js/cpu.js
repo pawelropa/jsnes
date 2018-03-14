@@ -124,7 +124,7 @@ class CPU {
 
 	var push = function(value) {
 		write(0x100 | this.sp, value);
-		this.pc -= 1;
+		this.sp -= 1;
 	};
 
 	var pop16 = function() {
@@ -138,6 +138,12 @@ class CPU {
 		var lByte = value & 0xFF;
 		push(hByte);
 		push(lByte);		
+	}
+
+	var read16 = function(addr) {
+		var lByte = mem_read(addr);
+		var hByte = mem_read(addr+1);
+		return hByte << 8 | lByte;
 	}
 
 	var bigCycle = function() {
@@ -192,6 +198,14 @@ class CPU {
 
 	var setCarry = function(value) {
 		this.fc = value > 0xff;
+	}
+
+	var setBreak = function(value) {
+		this.fb = value;
+	}
+
+	var setInterrupt = function(value) {
+		this.fi = value;
 	}
 
 	var setOverflow = function(value) {
@@ -354,9 +368,41 @@ class CPU {
 		}	
 	};
 
-	var brk = function () {};
-	var bvc = function () {};
-	var bvs = function () {};
+	var brk = function () {
+		this.pc += 1;
+		push16(this.pc);
+		setBreak(1);
+		setInterrupt(1);
+		this.pc = read16(0xFFFE); 
+	};
+
+	var bvc = function (mem) {
+		// if (!IF_OVERFLOW()) {
+		// 	clk += ((PC & 0xFF00) != (REL_ADDR(PC, src) & 0xFF00) ? 2 : 1);
+		// 	PC = REL_ADDR(PC, src);
+		// }
+		if (!this.fo) {
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;	
+		}
+	};
+
+	var bvs = function (mem) {
+		if (this.fo) {
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}
+	};
 
 	var clc = function () {
 		this.fc = 0;
@@ -380,8 +426,19 @@ class CPU {
 		setZero(tmp &= 0xFF);	
 	};
 
-	var cpx = function () {};
-	var cpy = function () {};
+	var cpx = function (mem) {
+		var tmp = this.x - mem;
+		setCarry(tmp < 0x100);
+		setNegative(tmp);
+		setZero(tmp &= 0xFF);		
+	};
+
+	var cpy = function (mem) {
+		var tmp = this.y - mem;
+		setCarry(tmp < 0x100);
+		setNegative(tmp);
+		setZero(tmp &= 0xFF);	
+	};
 
 	var dcp = function () {
 		assert(false, "dcp is an illegal opcode");	
@@ -444,9 +501,18 @@ class CPU {
 	};
 
 	var sbc = function () {};
-	var sec = function () {};
-	var sed = function () {};
-	var sei = function () {};
+
+	var sec = function () {
+		this.fc = 1;
+	};
+
+	var sed = function () {
+		this.fd = 1;
+	};
+
+	var sei = function () {
+		this.fi = 1;
+	};
 
 	var shx = function () {
 		assert(false, "shx is an illegal opcode");
@@ -464,9 +530,17 @@ class CPU {
 		assert(false, "sre is an illegal opcode");
 	};
 
-	var sta = function () {};
-	var stx = function () {};
-	var sty = function () {};
+	var sta = function (addr) {
+		write(addr, this.acc);
+	};
+
+	var stx = function (addr) {
+		write(addr, this.x);
+	};
+
+	var sty = function () {
+		write(addr, this.y);
+	};
 
 	var tas = function () {
 		assert(false, "tas is an illegal opcode");
