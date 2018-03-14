@@ -107,6 +107,39 @@ class CPU {
 		}
 	};
 
+	var write = function(addr, value) {
+		if (addr < 0x800) {
+			this.memory[addr] = value;
+		} else if (addr < 0x2000) {
+			this.memory[addr & 0x7FF] = value;
+		} else {
+			assert(false, "Not implemented yet");
+		}
+	}
+
+	var pop = function() {
+		this.sp += 1;
+		mem_read(0x100 | this.sp);
+	}
+
+	var push = function(value) {
+		write(0x100 | this.sp, value);
+		this.pc -= 1;
+	};
+
+	var pop16 = function() {
+		var lByte = pop();
+		var hByte = pop();
+		return hByte << 8 | lByte;
+	}
+
+	var push16 = function(value) {
+		var hByte = value >> 8;
+		var lByte = value & 0xFF;
+		push(hByte);
+		push(lByte);		
+	}
+
 	var bigCycle = function() {
 		var opcode = mem_read(this.pc);
 		var op = opcodes[opcode];
