@@ -148,6 +148,34 @@ class CPU {
 		return hByte << 8 | lByte;
 	}
 
+	var statusRegisters = function() {
+		// Bit No.       7   6   5   4   3   2   1   0
+		// 			     S   V       B   D   I   Z   C
+		var registers = 0x00;
+
+		registers |= this.fc << 0;
+		registers |= this.fz << 1;	
+		registers |= this.fi << 2;
+		registers |= this.fd << 3;
+		registers |= this.fb << 4;
+		registers |= this.fu << 5;
+		registers |= this.fo << 6;
+		registers |= this.fn << 7;
+
+		return registers;
+	};
+
+	var setStatusRegisters = function(value) {
+		this.fc = (value >> 0) & 1;
+		this.fz = (value >> 1) & 1;
+		this.fi = (value >> 2) & 1;
+		this.fd = (value >> 3) & 1;
+		this.fb = (value >> 4) & 1;
+		this.fu = (value >> 5) & 1;
+		this.fo = (value >> 6) & 1;
+		this.fn = (value >> 7) & 1;
+	};
+
 	var bigCycle = function() {
 		var opcode = mem_read(this.pc);
 		var op = opcodes[opcode];
@@ -560,13 +588,63 @@ class CPU {
 		this.y = src;
 	};
 
-	var lsr = function () {};
-	var nop = function () {};
-	var ora = function () {};
-	var pha = function () {};
-	var php = function () {};
-	var pla = function () {};
-	var plp = function () {};
+	var lsr = function (addr, mode) {
+		// SET_CARRY(src & 0x01);
+		// src >>= 1;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE src in memory or accumulator depending on addressing mode.
+
+		var src = mem_read(addr);
+		setCarry(src & 0x01);
+		src >>= 1;
+		setNegative(src);
+		setZero(src);
+
+		//??????
+		if (mode == Mode.ACC) {
+			this.acc = src;
+		} else {
+			write(addr, src);
+		}
+	};
+
+	var nop = function () {
+		// Simplest opcode ever, basically nothing.
+	};
+
+	var ora = function (addr) {
+		// src |= AC;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// AC = src;
+		var src = mem_read(addr);
+		src = src | this.acc;
+		setNegative(src);
+		setZero(src);
+		this.acc = src;
+	};
+
+	var pha = function () {
+		var value = this.acc;
+		push(value);
+	};
+
+	var php = function () {
+		var src = statusRegisters();
+		push(src);
+	};
+
+	var pla = function () {
+		this.acc = pop();
+		setNegative(this.acc);
+		setZero(this.acc);
+	};
+
+	var plp = function () {
+		var src = pop();
+		setStatusRegisters(src);
+	};
 
 	var rla = function () {
 		assert(false, "rla is an illegal opcode");
