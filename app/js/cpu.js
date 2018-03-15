@@ -1,3 +1,5 @@
+import { read } from 'fs';
+
 const fs = require('fs');
 
 class Opcode {
@@ -444,20 +446,86 @@ class CPU {
 		assert(false, "dcp is an illegal opcode");	
 	};
 
-	var dec = function () {};
-	var dex = function () {};
-	var dey = function () {};
-	var eor = function () {};
-	var inc = function () {};
-	var inx = function () {};
-	var iny = function () {};
+	var dec = function (addr) {
+		// src = (src - 1) & 0xff;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE(address, (src));
+		var src = (addr - 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		write(addr, src);
+	};
+
+	var dex = function () {
+		var src = (this.x - 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var dey = function () {
+		var src = (this.y - 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		this.y = src;
+	};
+
+	var eor = function (addr) {
+		// src ^= AC;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// AC = src;
+
+		var src = mem_read(add);
+		this.acc = this.acc ^ src;
+		setNegative(this.acc);
+		setZero(this.acc);
+	};
+
+	var inc = function (addr) {
+		// src = (src + 1) & 0xff;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE(address, (src));
+
+		var src = (addr + 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		write(addr, src);
+	};
+
+	var inx = function () {
+		var src = (this.x + 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var iny = function () {
+		var src = (this.y + 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		this.y = src;
+	};
 
 	var isc = function () {
 		assert(false, "isc is an illegal opcode");
 	};
 
-	var jmp = function () {};
-	var jsr = function () {};
+	var jmp = function (addr) {
+		this.pc = addr; 
+	};
+
+	var jsr = function (addr) {
+		// PC--;
+		// PUSH((PC >> 8) & 0xff);	/* Push return address onto the stack. */
+		// PUSH(PC & 0xff);
+		// PC = (src);
+		this.pc -= 1;
+		push16(this.pc);
+		this.pc = addr;
+	};
 
 	var kil = function () {
 		assert(false, "kil is an illegal opcode");
@@ -471,9 +539,27 @@ class CPU {
 		assert(false, "lax is an illegal opcode");
 	};
 
-	var lda = function () {};
-	var ldx = function () {};
-	var ldy = function () {};
+	var lda = function (addr) {
+		var src = mem_read(addr);
+		setNegative(src);
+		setZero(src);
+		this.acc = src;
+	};
+
+	var ldx = function (addr) {
+		var src = mem_read(addr);
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var ldy = function (addr) {
+		var src = mem_read(addr);
+		setNegative(src);
+		setZero(src);
+		this.y = src;
+	};
+
 	var lsr = function () {};
 	var nop = function () {};
 	var ora = function () {};
