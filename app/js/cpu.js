@@ -650,21 +650,119 @@ class CPU {
 		assert(false, "rla is an illegal opcode");
 	};
 
-	var rol = function () {};
-	var ror = function () {};
+	var rol = function (addr, mode) {
+		// src <<= 1;
+		// if (IF_CARRY()) src |= 0x1;
+		// SET_CARRY(src > 0xff);
+		// src &= 0xff;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE src in memory or accumulator depending on addressing mode.
+
+		if (mode == Mode.ACC) {
+			
+			var src = mem_read(addr);
+			src <<= 1;
+			if (this.fc) {
+				src |= 0x1;
+			}
+			setCarry(src > 0xFF);
+			src &= 0xFF;
+			setNegative(src);
+			setZero(src);
+
+			this.acc = src;
+		} else {
+			var src = mem_read(addr);
+			src <<= 1;
+			if (this.fc) {
+				src |= 0x1;
+			}
+			setCarry(src > 0xFF);
+			src &= 0xFF;
+			setNegative(src);
+			setZero(src);
+			write(addr, src);
+		}
+	};
+
+	var ror = function (addr, mode) {
+		// if (IF_CARRY()) src |= 0x100;
+		// SET_CARRY(src & 0x01);
+		// src >>= 1;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE src in memory or accumulator depending on addressing mode.
+		var src = mem_read(addr);
+		if (this.fc) {
+			src |= 0x100;
+		}
+		setCarry(src & 0x01);
+		src >>= 1;
+		setNegative(src);
+		setZero(src);
+
+		if (mode == Mode.ACC) {
+			this.acc = src;
+		} else {
+			write(addr, src);
+		}
+	};
 
 	var rra = function () {
 		assert(false, "rra is an illegal opcode");
 	};
 
-	var rti = function () {};
-	var rts = function () {};
+	var rti = function () {
+		// src = PULL();
+		// SET_SR(src);
+		// src = PULL();
+		// src |= (PULL() << 8);	/* Load return address from stack. */
+		// PC = (src);
+		var src = pop();
+		setStatusRegisters(src);
+		src = pop();
+		src |= (pop() << 8);
+		this.pc = src;
+	};
+
+	var rts = function () {
+		// src = PULL();
+		// src += ((PULL()) << 8) + 1;	/* Load return address from stack and add 1. */
+		// PC = (src);
+		var src = pop16();
+		this.pc = src + 1;
+	};
 
 	var sax = function () {
 		assert(false, "sax is an illegal opcode");
 	};
 
-	var sbc = function () {};
+	var sbc = function (addr) {
+		// unsigned int temp = AC - src - (IF_CARRY() ? 0 : 1);
+		// SET_SIGN(temp);
+		// SET_ZERO(temp & 0xff);	/* Sign and Zero are invalid in decimal mode */
+		// SET_OVERFLOW(((AC ^ temp) & 0x80) && ((AC ^ src) & 0x80));
+		// if (IF_DECIMAL()) {
+		// 	if ( ((AC & 0xf) - (IF_CARRY() ? 0 : 1)) < (src & 0xf)) /* EP */ temp -= 6;
+		// 	if (temp > 0x99) temp -= 0x60;
+		// }
+		// SET_CARRY(temp < 0x100);
+		// AC = (temp & 0xff);
+		var src = mem_read(addr);
+		var tmp = this.acc - src - (this.fc ? 0 : 1);
+		setNegative(tmp);
+		setZero(tmp & 0xFF);
+		
+		if (((this.acc ^ tmp) & 0x80) && ((this.acc ^ src) & 0x80)) {
+			this.fo = 1;
+		}  else {
+			this.fo = 0;
+		}
+		
+		setCarry(tmp < 0x100);
+		this.acc = tmp & 0xFF;
+	};
 
 	var sec = function () {
 		this.fc = 1;
