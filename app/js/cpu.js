@@ -1,3 +1,5 @@
+import { read } from 'fs';
+
 const fs = require('fs');
 
 class Opcode {
@@ -67,7 +69,8 @@ class CPU {
 
 		pc = 0x0000, // Program counter - 16 bit
 		memory = new Uint8Array(65535), // 0xFFFF,
-		tmp; // helper var
+		tmp = 0, // helper var
+		cycles = 0;
 
 	const Mode = {
 		ACC: 0,
@@ -104,6 +107,73 @@ class CPU {
 			return memory[addr];
 			//return mem_read_fp[addr >> 12](addr);
 		}
+	};
+
+	var write = function(addr, value) {
+		if (addr < 0x800) {
+			this.memory[addr] = value;
+		} else if (addr < 0x2000) {
+			this.memory[addr & 0x7FF] = value;
+		} else {
+			assert(false, "Not implemented yet");
+		}
+	}
+
+	var pop = function() {
+		this.sp += 1;
+		mem_read(0x100 | this.sp);
+	}
+
+	var push = function(value) {
+		write(0x100 | this.sp, value);
+		this.sp -= 1;
+	};
+
+	var pop16 = function() {
+		var lByte = pop();
+		var hByte = pop();
+		return hByte << 8 | lByte;
+	}
+
+	var push16 = function(value) {
+		var hByte = value >> 8;
+		var lByte = value & 0xFF;
+		push(hByte);
+		push(lByte);		
+	}
+
+	var read16 = function(addr) {
+		var lByte = mem_read(addr);
+		var hByte = mem_read(addr+1);
+		return hByte << 8 | lByte;
+	}
+
+	var statusRegisters = function() {
+		// Bit No.       7   6   5   4   3   2   1   0
+		// 			     S   V       B   D   I   Z   C
+		var registers = 0x00;
+
+		registers |= this.fc << 0;
+		registers |= this.fz << 1;	
+		registers |= this.fi << 2;
+		registers |= this.fd << 3;
+		registers |= this.fb << 4;
+		registers |= this.fu << 5;
+		registers |= this.fo << 6;
+		registers |= this.fn << 7;
+
+		return registers;
+	};
+
+	var setStatusRegisters = function(value) {
+		this.fc = (value >> 0) & 1;
+		this.fz = (value >> 1) & 1;
+		this.fi = (value >> 2) & 1;
+		this.fd = (value >> 3) & 1;
+		this.fb = (value >> 4) & 1;
+		this.fu = (value >> 5) & 1;
+		this.fo = (value >> 6) & 1;
+		this.fn = (value >> 7) & 1;
 	};
 
 	var bigCycle = function() {
@@ -158,6 +228,22 @@ class CPU {
 
 	var setCarry = function(value) {
 		this.fc = value > 0xff;
+	}
+
+	var setBreak = function(value) {
+		this.fb = value;
+	}
+
+	var setInterrupt = function(value) {
+		this.fi = value;
+	}
+
+	var setOverflow = function(value) {
+		if (value) {
+			this.fo = 1;
+		} else { 
+			this.fo = 0;
+		}
 	}
 	
 	var adc = function (mem) {
@@ -228,25 +314,125 @@ class CPU {
 		assert(false, "axs is an illegal opcode");
 	};
 
-	var bcc = function () {
-		if (this.fc == 0) {
+	var bcc = function (mem) {
+		if (!this.fc) {
 // ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
 		}	
 	};
 
-	var bcs = function () {};
-	var beq = function () {};
-
-	var bit = function () {
+	var bcs = function (mem) {
+		if (this.fc) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
+	};
+	var beq = function (mem) {
+		if (this.fz) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
 		
 	};
 
-	var bmi = function () {};
-	var bne = function () {};
-	var bpl = function () {};
-	var brk = function () {};
-	var bvc = function () {};
-	var bvs = function () {};
+	var bit = function (mem) {
+		setNegative(mem);	
+		setOverflow(0x40 & mem);
+		setZero(mem & this.acc);
+	};
+
+	var bmi = function (mem) {
+		if (this.fn) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
+	};
+
+	var bne = function (mem) {
+		if (!this.fz) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
+	};
+
+	var bpl = function (mem) {
+		if (!this.fn) {
+// ????
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}	
+	};
+
+	var brk = function () {
+		this.pc += 1;
+		push16(this.pc);
+		setBreak(1);
+		setInterrupt(1);
+		this.pc = read16(0xFFFE); 
+	};
+
+	var bvc = function (mem) {
+		// if (!IF_OVERFLOW()) {
+		// 	clk += ((PC & 0xFF00) != (REL_ADDR(PC, src) & 0xFF00) ? 2 : 1);
+		// 	PC = REL_ADDR(PC, src);
+		// }
+		if (!this.fo) {
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;	
+		}
+	};
+
+	var bvs = function (mem) {
+		if (this.fo) {
+			var rel_addr = this.pc + mem;
+			var a = this.pc & 0xFF00 != rel_addr & 0xFF00;
+			this.cycles += 1;
+			if (a) {
+				this.cycles += 1;
+			}
+			this.pc = mem;
+		}
+	};
 
 	var clc = function () {
 		this.fc = 0;
@@ -270,27 +456,104 @@ class CPU {
 		setZero(tmp &= 0xFF);	
 	};
 
-	var cpx = function () {};
-	var cpy = function () {};
+	var cpx = function (mem) {
+		var tmp = this.x - mem;
+		setCarry(tmp < 0x100);
+		setNegative(tmp);
+		setZero(tmp &= 0xFF);		
+	};
+
+	var cpy = function (mem) {
+		var tmp = this.y - mem;
+		setCarry(tmp < 0x100);
+		setNegative(tmp);
+		setZero(tmp &= 0xFF);	
+	};
 
 	var dcp = function () {
 		assert(false, "dcp is an illegal opcode");	
 	};
 
-	var dec = function () {};
-	var dex = function () {};
-	var dey = function () {};
-	var eor = function () {};
-	var inc = function () {};
-	var inx = function () {};
-	var iny = function () {};
+	var dec = function (addr) {
+		// src = (src - 1) & 0xff;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE(address, (src));
+		var src = (addr - 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		write(addr, src);
+	};
+
+	var dex = function () {
+		var src = (this.x - 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var dey = function () {
+		var src = (this.y - 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		this.y = src;
+	};
+
+	var eor = function (addr) {
+		// src ^= AC;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// AC = src;
+
+		var src = mem_read(add);
+		this.acc = this.acc ^ src;
+		setNegative(this.acc);
+		setZero(this.acc);
+	};
+
+	var inc = function (addr) {
+		// src = (src + 1) & 0xff;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE(address, (src));
+
+		var src = (addr + 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		write(addr, src);
+	};
+
+	var inx = function () {
+		var src = (this.x + 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var iny = function () {
+		var src = (this.y + 1) & 0xFF;
+		setNegative(src);
+		setZero(src);
+		this.y = src;
+	};
 
 	var isc = function () {
 		assert(false, "isc is an illegal opcode");
 	};
 
-	var jmp = function () {};
-	var jsr = function () {};
+	var jmp = function (addr) {
+		this.pc = addr; 
+	};
+
+	var jsr = function (addr) {
+		// PC--;
+		// PUSH((PC >> 8) & 0xff);	/* Push return address onto the stack. */
+		// PUSH(PC & 0xff);
+		// PC = (src);
+		this.pc -= 1;
+		push16(this.pc);
+		this.pc = addr;
+	};
 
 	var kil = function () {
 		assert(false, "kil is an illegal opcode");
@@ -304,39 +567,214 @@ class CPU {
 		assert(false, "lax is an illegal opcode");
 	};
 
-	var lda = function () {};
-	var ldx = function () {};
-	var ldy = function () {};
-	var lsr = function () {};
-	var nop = function () {};
-	var ora = function () {};
-	var pha = function () {};
-	var php = function () {};
-	var pla = function () {};
-	var plp = function () {};
+	var lda = function (addr) {
+		var src = mem_read(addr);
+		setNegative(src);
+		setZero(src);
+		this.acc = src;
+	};
+
+	var ldx = function (addr) {
+		var src = mem_read(addr);
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var ldy = function (addr) {
+		var src = mem_read(addr);
+		setNegative(src);
+		setZero(src);
+		this.y = src;
+	};
+
+	var lsr = function (addr, mode) {
+		// SET_CARRY(src & 0x01);
+		// src >>= 1;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE src in memory or accumulator depending on addressing mode.
+
+		var src = mem_read(addr);
+		setCarry(src & 0x01);
+		src >>= 1;
+		setNegative(src);
+		setZero(src);
+
+		//??????
+		if (mode == Mode.ACC) {
+			this.acc = src;
+		} else {
+			write(addr, src);
+		}
+	};
+
+	var nop = function () {
+		// Simplest opcode ever, basically nothing.
+	};
+
+	var ora = function (addr) {
+		// src |= AC;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// AC = src;
+		var src = mem_read(addr);
+		src = src | this.acc;
+		setNegative(src);
+		setZero(src);
+		this.acc = src;
+	};
+
+	var pha = function () {
+		var value = this.acc;
+		push(value);
+	};
+
+	var php = function () {
+		var src = statusRegisters();
+		push(src);
+	};
+
+	var pla = function () {
+		this.acc = pop();
+		setNegative(this.acc);
+		setZero(this.acc);
+	};
+
+	var plp = function () {
+		var src = pop();
+		setStatusRegisters(src);
+	};
 
 	var rla = function () {
 		assert(false, "rla is an illegal opcode");
 	};
 
-	var rol = function () {};
-	var ror = function () {};
+	var rol = function (addr, mode) {
+		// src <<= 1;
+		// if (IF_CARRY()) src |= 0x1;
+		// SET_CARRY(src > 0xff);
+		// src &= 0xff;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE src in memory or accumulator depending on addressing mode.
+
+		if (mode == Mode.ACC) {
+			
+			var src = mem_read(addr);
+			src <<= 1;
+			if (this.fc) {
+				src |= 0x1;
+			}
+			setCarry(src > 0xFF);
+			src &= 0xFF;
+			setNegative(src);
+			setZero(src);
+
+			this.acc = src;
+		} else {
+			var src = mem_read(addr);
+			src <<= 1;
+			if (this.fc) {
+				src |= 0x1;
+			}
+			setCarry(src > 0xFF);
+			src &= 0xFF;
+			setNegative(src);
+			setZero(src);
+			write(addr, src);
+		}
+	};
+
+	var ror = function (addr, mode) {
+		// if (IF_CARRY()) src |= 0x100;
+		// SET_CARRY(src & 0x01);
+		// src >>= 1;
+		// SET_SIGN(src);
+		// SET_ZERO(src);
+		// STORE src in memory or accumulator depending on addressing mode.
+		var src = mem_read(addr);
+		if (this.fc) {
+			src |= 0x100;
+		}
+		setCarry(src & 0x01);
+		src >>= 1;
+		setNegative(src);
+		setZero(src);
+
+		if (mode == Mode.ACC) {
+			this.acc = src;
+		} else {
+			write(addr, src);
+		}
+	};
 
 	var rra = function () {
 		assert(false, "rra is an illegal opcode");
 	};
 
-	var rti = function () {};
-	var rts = function () {};
+	var rti = function () {
+		// src = PULL();
+		// SET_SR(src);
+		// src = PULL();
+		// src |= (PULL() << 8);	/* Load return address from stack. */
+		// PC = (src);
+		var src = pop();
+		setStatusRegisters(src);
+		src = pop();
+		src |= (pop() << 8);
+		this.pc = src;
+	};
+
+	var rts = function () {
+		// src = PULL();
+		// src += ((PULL()) << 8) + 1;	/* Load return address from stack and add 1. */
+		// PC = (src);
+		var src = pop16();
+		this.pc = src + 1;
+	};
 
 	var sax = function () {
 		assert(false, "sax is an illegal opcode");
 	};
 
-	var sbc = function () {};
-	var sec = function () {};
-	var sed = function () {};
-	var sei = function () {};
+	var sbc = function (addr) {
+		// unsigned int temp = AC - src - (IF_CARRY() ? 0 : 1);
+		// SET_SIGN(temp);
+		// SET_ZERO(temp & 0xff);	/* Sign and Zero are invalid in decimal mode */
+		// SET_OVERFLOW(((AC ^ temp) & 0x80) && ((AC ^ src) & 0x80));
+		// if (IF_DECIMAL()) {
+		// 	if ( ((AC & 0xf) - (IF_CARRY() ? 0 : 1)) < (src & 0xf)) /* EP */ temp -= 6;
+		// 	if (temp > 0x99) temp -= 0x60;
+		// }
+		// SET_CARRY(temp < 0x100);
+		// AC = (temp & 0xff);
+		var src = mem_read(addr);
+		var tmp = this.acc - src - (this.fc ? 0 : 1);
+		setNegative(tmp);
+		setZero(tmp & 0xFF);
+		
+		if (((this.acc ^ tmp) & 0x80) && ((this.acc ^ src) & 0x80)) {
+			this.fo = 1;
+		}  else {
+			this.fo = 0;
+		}
+		
+		setCarry(tmp < 0x100);
+		this.acc = tmp & 0xFF;
+	};
+
+	var sec = function () {
+		this.fc = 1;
+	};
+
+	var sed = function () {
+		this.fd = 1;
+	};
+
+	var sei = function () {
+		this.fi = 1;
+	};
 
 	var shx = function () {
 		assert(false, "shx is an illegal opcode");
@@ -354,20 +792,60 @@ class CPU {
 		assert(false, "sre is an illegal opcode");
 	};
 
-	var sta = function () {};
-	var stx = function () {};
-	var sty = function () {};
+	var sta = function (addr) {
+		write(addr, this.acc);
+	};
+
+	var stx = function (addr) {
+		write(addr, this.x);
+	};
+
+	var sty = function () {
+		write(addr, this.y);
+	};
 
 	var tas = function () {
 		assert(false, "tas is an illegal opcode");
 	};
 
-	var tax = function () {};
-	var tay = function () {};
-	var tsx = function () {};
-	var txa = function () {};
-	var txs = function () {};
-	var tya = function () {};
+	var tax = function () {
+		var src = this.acc;
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var tay = function () {
+		var src = this.acc;
+		setNegative(src);
+		setZero(src);
+		this.y = src;
+	};
+
+	var tsx = function () {
+		var src = this.sp;
+		setNegative(src);
+		setZero(src);
+		this.x = src;
+	};
+
+	var txa = function () {
+		var src = this.x;
+		setNegative(src);
+		setZero(src);
+		this.acc = src;
+	};
+
+	var txs = function () {
+		this.sp = this.x;
+	};
+
+	var tya = function () {
+		var src = this.y;
+		setNegative(src);
+		setZero(src);
+		this.acc = src;
+	};
 
 	var xaa = function () {
 		assert(false, "xaa is an illegal opcode");
@@ -615,24 +1093,7 @@ class CPU {
 		new Opcode(inc, Mode.ABSOLUTE, 3, 6, 0),
 		new Opcode(isc, Mode.ABSOLUTE, 0, 6, 0),
 		new Opcode(beq, Mode.RELATIVE, 2, 2, 1),
-		new Opcode(sbc, Mode.INDIRECT_Y, 2, 5, 1),
-		new Opcode(kil, Mode.IMPLIED, 0, 2, 0),
-		new Opcode(isc, Mode.INDIRECT_Y, 0, 8, 0),
-		new Opcode(nop, Mode.ZERO_PAGE_X, 2, 4, 0),
-		new Opcode(sbc, Mode.ZERO_PAGE_X, 2, 4, 0),
-		new Opcode(inc, Mode.ZERO_PAGE_X, 2, 6, 0),
-		new Opcode(isc, Mode.ZERO_PAGE_X, 0, 6, 0),
-		new Opcode(sed, Mode.IMPLIED, 1, 2, 0),
-		new Opcode(sbc, Mode.ABSOLUTE_Y, 3, 4, 1),
-		new Opcode(nop, Mode.IMPLIED, 1, 2, 0),
-		new Opcode(isc, Mode.ABSOLUTE_Y, 0, 7, 0),
-		new Opcode(nop, Mode.ABSOLUTE_X, 3, 4, 1),
-		new Opcode(sbc, Mode.ABSOLUTE_X, 3, 4, 1),
-		new Opcode(inc, Mode.ABSOLUTE_X, 3, 7, 0),
-		new Opcode(isc, Mode.ABSOLUTE_X, 0, 7, 0),
-	];
-})();
-
+	
 module.exports = {
 	CPU: CPU,
 	Opcode: Opcode,
